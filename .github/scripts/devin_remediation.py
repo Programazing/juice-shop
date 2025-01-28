@@ -23,12 +23,19 @@ SONAR_PROJECT_KEY = os.getenv("SONAR_PROJECT_KEY")
 async def get_sonarcloud_issues():
     url = "https://sonarcloud.io/api/issues/search"
     headers = {"Authorization": f"Bearer {SONAR_TOKEN}"}
+    
+    # Only add parameters if they exist
     params = {
-        "organization": SONAR_ORG,
-        "projectKeys": SONAR_PROJECT_KEY,
         "types": "VULNERABILITY",
         "statuses": "OPEN"
     }
+    
+    if SONAR_ORG:
+        params["organization"] = SONAR_ORG
+    if SONAR_PROJECT_KEY:
+        params["projectKeys"] = SONAR_PROJECT_KEY
+        
+    print(f"Using params: {params}")  # Debug line
     
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers, params=params) as response:
