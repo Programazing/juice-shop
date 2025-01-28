@@ -47,4 +47,6 @@ jobs:
         DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ORG: ${{ secrets.ORG }}
+        SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
       run: python .github/scripts/devin_remediation.py
