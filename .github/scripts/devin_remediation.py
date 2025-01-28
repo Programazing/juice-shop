@@ -51,7 +51,7 @@ async def create_devin_session(issue):
     safe_issue_name = issue['message'].lower()
     safe_issue_name = ''.join(c if c.isalnum() or c in '-_ ' else '' for c in safe_issue_name)
     safe_issue_name = safe_issue_name.replace(' ', '-')[:50]
-    branch_name = f"fix/devin/{safe_issue_name}"
+    branch_name = f"fix/devin/{safe_issue_name}-{issue['key']}"
     
     print(f"Creating branch: {branch_name}")
     
