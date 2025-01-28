@@ -22,6 +22,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: https://sonarcloud.io
+        projectKey: ${{ secrets.SONAR_TOKEN }}
+        organization: ${{ secrets.ORG }}
 
     - name: Setup Python
       uses: actions/setup-python@v5
