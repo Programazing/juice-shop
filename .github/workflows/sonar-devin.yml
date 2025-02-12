@@ -1,13 +1,13 @@
 name: SonarCloud Scan and Devin Remediation
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - 'master'
 
 jobs:
   analyze:
+    if: ${{ github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'devin-ai-integration') }}
     name: Analyze and Remediate
     runs-on: ubuntu-latest
     
@@ -20,7 +20,7 @@ jobs:
       uses: SonarSource/sonarqube-scan-action@v4
       with:
         args: >
-          -Dsonar.organization=${{ secrets.ORG }}
+          -Dsonar.organization=${{ secrets.SONAR_ORG }}
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
           -Dsonar.sources=.
       env:
@@ -32,7 +32,6 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
-        cache: 'pip'
 
     - name: Install Dependencies
       run: pip install aiohttp
@@ -47,6 +46,6 @@ jobs:
         DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        ORG: ${{ secrets.ORG }}
+        SONAR_ORG: ${{ secrets.SONAR_ORG }}
         SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
       run: python .github/scripts/devin_remediation.py
