@@ -93,6 +93,8 @@ async def get_devin_result(session_id):
             return await response.json()
 
 async def commit_changes(issue):
+    import json
+    
     # Add all changes
     subprocess.run(["git", "add", "."])
     
@@ -106,16 +108,39 @@ async def commit_changes(issue):
     # Commit changes
     subprocess.run(["git", "commit", "-m", commit_message])
     
-    # Set up remote with token for push
-    remote_url = f"https://x-access-token:{GITHUB_TOKEN}@github.com/{GITHUB_REPOSITORY}.git"
-    subprocess.run(["git", "remote", "set-url", "origin", remote_url])
+    # Get the current branch name
+    branch_name = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], 
+                               capture_output=True, text=True).stdout.strip()
     
     # Push changes
-    result = subprocess.run(["git", "push", "origin", "HEAD"], capture_output=True, text=True)
+    remote_url = f"https://x-access-token:{GITHUB_TOKEN}@github.com/{GITHUB_REPOSITORY}.git"
+    subprocess.run(["git", "remote", "set-url", "origin", remote_url])
+    result = subprocess.run(["git", "push", "-u", "origin", branch_name], 
+                          capture_output=True, text=True)
+    
     if result.returncode != 0:
         print(f"Error pushing changes: {result.stderr}")
-    else:
-        print(f"Successfully pushed changes: {result.stdout}")
+        return
+        
+    # Create pull request using GitHub API
+    async with aiohttp.ClientSession() as session:
+        pr_url = f"https://api.github.com/repos/{GITHUB_REPOSITORY}/pulls"
+        headers = {
+            "Authorization": f"Bearer {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+        pr_data = {
+            "title": f"Fix: {issue['message']}",
+            "body": f"Automated fix for vulnerability:\n\n- Issue Key: {issue['key']}\n- Component: {issue['component']}\n\nFixed by Devin AI",
+            "head": branch_name,
+            "base": "master"
+        }
+        
+        async with session.post(pr_url, headers=headers, json=pr_data) as response:
+            if response.status != 201:
+                print(f"Error creating pull request: {await response.text()}")
+            else:
+                print(f"Successfully created pull request: {await response.text()}")
 
 async def main():
     try:
